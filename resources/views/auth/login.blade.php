@@ -1,0 +1,33 @@
+@extends('layouts.guest')
+
+@section('content')
+    <!-- Logo & Header -->
+    <div class="text-center mb-8">
+        <div class="w-16 h-16 bg-[#ECFDF5] rounded-full mx-auto flex items-center justify-center mb-4">
+            <svg class="w-8 h-8 text-[#10B981]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+        </div>
+        <h1 class="text-2xl font-bold text-[#0F172A]">HR Central</h1>
+        <p class="text-sm text-slate-500 mt-1">Sign in to your account</p>
+    </div>
+
+    <!-- Login Form (Mockup) -->
+    <form action="/2fa" method="GET" class="space-y-5">
+        <div>
+            <label class="block text-sm font-bold text-[#0F172A] mb-1.5">Email Address</label>
+            <input type="email" placeholder="you@company.com" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981] transition text-sm">
+        </div>
+
+        <div>
+            <label class="block text-sm font-bold text-[#0F172A] mb-1.5">Password</label>
+            <input type="password" placeholder="••••••••" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981] transition text-sm">
+        </div>
+
+        <button type="submit" class="w-full bg-[#1E293B] hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-lg transition mt-4">
+            Sign In
+        </button>
+    </form>
+
+    <div class="mt-6 text-center">
+        <a href="#" class="text-sm font-bold text-[#10B981] hover:text-emerald-600 transition">Forgot Password?</a>
+    </div>
+@endsection

@@ -13,4 +13,9 @@ class AuthController extends Controller
     {
         return view('auth.2fa');
     }
+
+    public function employeeTwoFactor()
+    {
+        return view('auth.employee-2fa');
+    }
 }

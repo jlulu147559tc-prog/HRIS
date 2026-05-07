@@ -41,12 +41,9 @@
             <div class="flex items-center gap-6">
                 <div class="text-right">
                     <p class="text-xs font-medium text-slate-500">Net Pay</p>
-                    <p class="text-sm font-bold text-[#10B981]">{{ $slip['amount'] }}</p>
+                    <p class="text-sm font-bold text-[#10B981]">{{ $slip->amount }}</p>
                 </div>
-                <span class="px-3 py-1 rounded-full text-[10px] font-bold bg-[#10B981] text-white tracking-wide uppercase">{{ $slip['status'] }}</span>
-                <button class="w-10 h-10 rounded-lg border border-slate-200 text-slate-400 hover:text-emerald-600 hover:border-emerald-200 flex items-center justify-center transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                </button>
+                <span class="px-3 py-1 rounded-full text-[10px] font-bold bg-[#10B981] text-white tracking-wide uppercase">{{ $slip->status }}</span>
             </div>
         </div>
         @endforeach

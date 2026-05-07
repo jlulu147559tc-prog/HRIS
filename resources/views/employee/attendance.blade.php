@@ -1,6 +1,20 @@
 @extends('layouts.employee')
 
 @section('content')
+
+@if(session('success'))
+    <div class="mb-6 bg-[#ECFDF5] border border-[#10B981] text-[#10B981] px-4 py-3 rounded-lg flex items-center gap-2 font-bold text-sm">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        {{ session('success') }}
+    </div>
+@endif
+@if(session('error'))
+    <div class="mb-6 bg-[#FEF2F2] border border-[#EF4444] text-[#EF4444] px-4 py-3 rounded-lg flex items-center gap-2 font-bold text-sm">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        {{ session('error') }}
+    </div>
+@endif
+
 <div class="flex justify-between items-start mb-8">
     <div>
         <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">My Attendance</h1>
@@ -75,10 +89,14 @@
         <p class="text-xs font-bold text-slate-400 mb-1">Current Duration</p>
         <p class="text-xl font-black text-slate-900">{{ $data['today']['duration'] }}</p>
     </div>
-    <button class="bg-[#EF4444] hover:bg-red-600 text-white px-8 py-3 rounded-lg text-sm font-bold flex items-center gap-2 transition shadow-sm ml-auto">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-        Time Out
-    </button>
+    
+    <form action="{{ route('employee.attendance.punch') }}" method="POST" class="ml-auto">
+        @csrf
+        <button type="submit" class="bg-[#0B1C3D] hover:bg-slate-800 text-white px-8 py-3 rounded-lg text-sm font-bold flex items-center gap-2 transition shadow-sm cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            Punch In / Out
+        </button>
+    </form>
 </div>
 
 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6">
@@ -102,18 +120,17 @@
                 <tr class="hover:bg-slate-50 transition">
                     <td class="py-4 px-6 text-sm font-bold text-slate-900">{{ $row['date'] }}</td>
                     <td class="py-4 px-6 text-sm font-medium text-slate-500">{{ $row['day'] }}</td>
-                    <td class="py-4 px-6 text-sm font-medium text-slate-700">{{ $row['in'] }}</td>
-                    <td class="py-4 px-6 text-sm font-medium text-slate-700">{{ $row['out'] }}</td>
-                    <td class="py-4 px-6 text-sm font-bold {{ $row['hours'] == '9 hrs' ? 'text-[#10B981]' : 'text-slate-700' }}">{{ $row['hours'] }}</td>
+                    <td class="py-4 px-6 text-sm font-medium text-slate-700">{{ $row['time_in'] }}</td>
+                    <td class="py-4 px-6 text-sm font-medium text-slate-700">{{ $row['time_out'] }}</td>
+                    <td class="py-4 px-6 text-sm font-bold text-slate-700">{{ $row['hours_worked'] }}</td>
                     <td class="py-4 px-6">
-                        <span class="px-3 py-1 rounded-full text-xs font-bold border flex items-center w-max gap-1.5 {{ $row['color'] }}">
-                            @if($row['status'] == 'Late')
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            @else
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                            @endif
-                            {{ $row['status'] }}
-                        </span>
+                        @if($row['status'] === 'Present')
+                            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold border border-[#10B981]/20 bg-[#F0FDF4] text-[#10B981]">Present</span>
+                        @elseif($row['status'] === 'Late')
+                            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold border border-[#F59E0B]/20 bg-[#FFFBEB] text-[#F59E0B]">Late</span>
+                        @else
+                            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold border border-[#DC2626]/20 bg-[#FEF2F2] text-[#DC2626]">{{ $row['status'] }}</span>
+                        @endif
                     </td>
                 </tr>
                 @endforeach

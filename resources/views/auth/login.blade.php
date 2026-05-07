@@ -10,7 +10,12 @@
         <p class="text-sm text-slate-500 mt-1">Sign in to your account</p>
     </div>
 
-    <form :action="role === 'employee' ? '/employee/2fa' : '/2fa'" method="GET" class="space-y-5">
+    <form action="{{ route('login.post') }}" method="POST" class="space-y-5">
+        @csrf @error('email')
+            <div class="bg-[#FEF2F2] border border-[#EF4444] text-[#EF4444] px-4 py-3 rounded-lg text-sm font-bold mb-2">
+                {{ $message }}
+            </div>
+        @enderror
         
         <div>
             <label class="block text-sm font-bold text-[#0F172A] mb-2">Login As</label>
@@ -32,12 +37,12 @@
 
         <div>
             <label class="block text-sm font-bold text-[#0F172A] mb-1.5">Email Address</label>
-            <input type="email" placeholder="you@company.com" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981] transition text-sm">
+            <input type="email" name="email" value="{{ old('email') }}" required placeholder="you@company.com" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981] transition text-sm">
         </div>
 
         <div>
             <label class="block text-sm font-bold text-[#0F172A] mb-1.5">Password</label>
-            <input type="password" placeholder="••••••••" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981] transition text-sm">
+            <input type="password" name="password" required placeholder="••••••••" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981] transition text-sm">
         </div>
 
         <button type="submit" class="w-full bg-[#1E293B] hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-lg transition mt-4">

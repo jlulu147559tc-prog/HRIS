@@ -2,61 +2,77 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Employee;
+use App\Models\Attendance;
+use Illuminate\Http\Request;
+use Carbon\Carbon;
+
 class AttendanceController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Summary Cards Data
+        $selectedWeek = $request->input('week', 'current');
+        
+        $startDate = Carbon::now()->startOfWeek();
+        $endDate = Carbon::now()->endOfWeek();
+
+        if ($selectedWeek === 'previous') {
+            $startDate = Carbon::now()->subWeek()->startOfWeek();
+            $endDate = Carbon::now()->subWeek()->endOfWeek();
+        }
+
+        $employees = Employee::where('status', 'Active')->get();
+        
+        $attendanceMatrix = [];
+        $regularHours = 0;
+        $overtime = 0;
+        $tardiness = 0;
+
+        foreach ($employees as $employee) {
+            $schedule = [];
+            $periodDays = [
+                'mon' => $startDate->copy(),
+                'tue' => $startDate->copy()->addDay(1),
+                'wed' => $startDate->copy()->addDay(2),
+                'thu' => $startDate->copy()->addDay(3),
+                'fri' => $startDate->copy()->addDay(4),
+            ];
+
+            foreach ($periodDays as $dayKey => $date) {
+                // Inside the loop in AttendanceController@index
+$record = Attendance::where('employee_id', $employee->id)
+    ->where('record_date', $date->toDateString()) // This must match Step 1
+    ->first();
+
+                if ($record) {
+                    $schedule[$dayKey] = [
+                        'status' => $record->status,
+                        'time' => $record->time_in . ' - ' . ($record->time_out ?? '---'),
+                        'hours' => ($record->hours_worked ?? '0') . 'h',
+                    ];
+                    // Cast to float before adding
+                    $regularHours += (float) $record->hours_worked;
+                } else {
+                    $schedule[$dayKey] = [
+                        'status' => 'Absent',
+                        'time' => '---',
+                        'hours' => '-'
+                    ];
+                }
+            }
+
+            $attendanceMatrix[] = [
+                'name' => $employee->first_name . ' ' . $employee->last_name,
+                'schedule' => $schedule,
+            ];
+        }
+
         $summary = [
-            'regular_hours' => '151.3',
-            'overtime' => '1.0',
-            'tardiness' => '0.8'
+            'regular_hours' => round($regularHours, 1),
+            'overtime' => round($overtime, 1),
+            'tardiness' => round($tardiness, 1),
         ];
 
-        // Weekly Matrix Data (Matching the mockup)
-        $attendanceMatrix = [
-            [
-                'name' => 'Juan Dela Cruz',
-                'schedule' => [
-                    'mon' => ['status' => 'Present', 'time' => '08:00 AM - 05:00 PM', 'hours' => '8h'],
-                    'tue' => ['status' => 'Late', 'time' => '08:05 AM - 05:02 PM', 'hours' => '8h'],
-                    'wed' => ['status' => 'Present', 'time' => '08:00 AM - 05:00 PM', 'hours' => '8h'],
-                    'thu' => ['status' => 'Present', 'time' => '08:00 AM - 05:00 PM', 'hours' => '8h'],
-                    'fri' => ['status' => 'Absent', 'time' => '- - -', 'hours' => '-']
-                ]
-            ],
-            [
-                'name' => 'Maria Santos',
-                'schedule' => [
-                    'mon' => ['status' => 'Present', 'time' => '08:00 AM - 05:00 PM', 'hours' => '8h'],
-                    'tue' => ['status' => 'Present', 'time' => '08:00 AM - 05:00 PM', 'hours' => '8h'],
-                    'wed' => ['status' => 'Present', 'time' => '08:00 AM - 05:00 PM', 'hours' => '8h'],
-                    'thu' => ['status' => 'Present', 'time' => '08:00 AM - 06:00 PM', 'hours' => '9h'],
-                    'fri' => ['status' => 'Present', 'time' => '08:00 AM - 05:00 PM', 'hours' => '8h']
-                ]
-            ],
-            [
-                'name' => 'Jose Reyes',
-                'schedule' => [
-                    'mon' => ['status' => 'Late', 'time' => '08:15 AM - 05:00 PM', 'hours' => '7.75h'],
-                    'tue' => ['status' => 'Present', 'time' => '08:00 AM - 05:00 PM', 'hours' => '8h'],
-                    'wed' => ['status' => 'Present', 'time' => '08:00 AM - 05:00 PM', 'hours' => '8h'],
-                    'thu' => ['status' => 'Present', 'time' => '08:00 AM - 05:00 PM', 'hours' => '8h'],
-                    'fri' => ['status' => 'Present', 'time' => '08:00 AM - 05:00 PM', 'hours' => '8h']
-                ]
-            ],
-            [
-                'name' => 'Ana Garcia',
-                'schedule' => [
-                    'mon' => ['status' => 'Present', 'time' => '08:00 AM - 05:00 PM', 'hours' => '8h'],
-                    'tue' => ['status' => 'Present', 'time' => '08:00 AM - 05:00 PM', 'hours' => '8h'],
-                    'wed' => ['status' => 'Undertime', 'time' => '08:00 AM - 04:30 PM', 'hours' => '7.5h'],
-                    'thu' => ['status' => 'Present', 'time' => '08:00 AM - 05:00 PM', 'hours' => '8h'],
-                    'fri' => ['status' => 'Present', 'time' => '08:00 AM - 05:00 PM', 'hours' => '8h']
-                ]
-            ]
-        ];
-
-        return view('attendance.index', compact('summary', 'attendanceMatrix'));
+        return view('attendance.index', compact('attendanceMatrix', 'summary', 'selectedWeek'));
     }
 }

@@ -2,40 +2,53 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Employee;
+use App\Models\LeaveRequest;
+use App\Models\Attendance;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $data = [
-            'attendance' => [
-                'present' => 142,
-                'absent' => 8,
-                'late' => 12,
-            ],
-            'pending_leaves' => [
-                ['name' => 'Maria Santos', 'type' => 'Vacation Leave', 'dates' => 'Apr 20-22, 2026', 'duration' => '3d'],
-                ['name' => 'Jose Reyes', 'type' => 'Sick Leave', 'dates' => 'Apr 16-17, 2026', 'duration' => '2d'],
-                ['name' => 'Ana Garcia', 'type' => 'Emergency Leave', 'dates' => 'Apr 18, 2026', 'duration' => '1d'],
-            ],
-            'upcoming_reviews' => [
-                ['name' => 'Pedro Alvarez', 'dept' => 'Engineering', 'due' => 'Apr 18, 2026'],
-                ['name' => 'Rosa Mendoza', 'dept' => 'Sales', 'due' => 'Apr 20, 2026'],
-                ['name' => 'Miguel Torres', 'dept' => 'Marketing', 'due' => 'Apr 22, 2026'],
-            ],
-            'payroll' => [
-                'days_left' => 3,
-                'date' => 'April 18, 2026',
-                'period' => 'Semi-Monthly Period 1'
-            ],
-            'new_hires' => [
-                ['name' => 'Carlos Luna', 'role' => 'Software Engineer', 'date' => 'Apr 1, 2026', 'initials' => 'CL'],
-                ['name' => 'Sofia Ramos', 'role' => 'Sales Associate', 'date' => 'Apr 5, 2026', 'initials' => 'SR'],
-                ['name' => 'Diego Cruz', 'role' => 'HR Assistant', 'date' => 'Apr 10, 2026', 'initials' => 'DC'],
-            ]
-        ];
+        // 1. Count total Active Employees
+        $totalActive = Employee::where('status', 'Active')->count();
 
-        return view('dashboard', compact('data'));
+        // 2. Get Pending Leave Requests (Fetch the top 3 newest ones)
+        $pendingLeaves = LeaveRequest::with('employee')
+                            ->where('status', 'Pending')
+                            ->orderBy('created_at', 'desc')
+                            ->take(3)
+                            ->get();
+
+        // 3. Get New Hires (Employees hired in the last 30 days)
+        $newHires = Employee::where('hire_date', '>=', now()->subDays(30))
+                            ->orderBy('hire_date', 'desc')
+                            ->take(3)
+                            ->get();
+
+        // 4. Basic Attendance Stats for Today
+        $today = now()->toDateString();
+        
+        // Count how many people have an attendance record for today
+        $presentToday = Attendance::where('record_date', $today)->count();
+        
+        // Count late arrivals (anyone whose status is 'Late')
+        $lateToday = Attendance::where('record_date', $today)
+                               ->where('status', 'Late')
+                               ->count();
+                               
+        // Subtract present from total active to get the absent count
+        $absentToday = $totalActive - $presentToday;
+
+        // Send all these real numbers to the view!
+        return view('dashboard', compact(
+            'totalActive', 
+            'pendingLeaves', 
+            'newHires', 
+            'presentToday', 
+            'lateToday', 
+            'absentToday'
+        ));
     }
 }

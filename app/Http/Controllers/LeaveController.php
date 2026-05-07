@@ -2,48 +2,33 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LeaveRequest;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
 class LeaveController extends Controller
 {
     public function index()
     {
-        // 1. Leave Calendar Data
-        $calendar = [
-            ['name' => 'Maria Santos', 'type' => 'Vacation Leave', 'dates' => 'Apr 20-22', 'color' => 'border-[#22C55E]'],
-            ['name' => 'Pedro Alvarez', 'type' => 'Vacation Leave', 'dates' => 'Apr 10-12', 'color' => 'border-[#22C55E]'],
-            ['name' => 'Jose Reyes', 'type' => 'Sick Leave', 'dates' => 'Apr 16-17', 'color' => 'border-[#F59E0B]'],
-            ['name' => 'Ana Garcia', 'type' => 'Emergency Leave', 'dates' => 'Apr 18', 'color' => 'border-[#EF4444]'],
-        ];
+        // 1. Fetch ALL leave requests from the database
+        // We use 'with('employee')' to pull the employee's name at the same time!
+        $leaveRequests = LeaveRequest::with('employee')->orderBy('created_at', 'desc')->get();
 
-        // 2. Pending Requests Data
-        $requests = [
-            [
-                'initials' => 'MS', 'name' => 'Maria Santos', 'applied' => 'Apr 10, 2026', 
-                'type' => 'Vacation Leave', 'type_class' => 'bg-[#DCFCE7] text-[#16A34A]',
-                'dates' => 'Apr 20, 2026', 'to_dates' => 'to Apr 22, 2026', 'days' => 3, 
-                'reason' => 'Family vacation', 'status' => 'Pending'
-            ],
-            [
-                'initials' => 'JR', 'name' => 'Jose Reyes', 'applied' => 'Apr 12, 2026', 
-                'type' => 'Sick Leave', 'type_class' => 'bg-[#FFEDD5] text-[#F97316]',
-                'dates' => 'Apr 16, 2026', 'to_dates' => 'to Apr 17, 2026', 'days' => 2, 
-                'reason' => 'Medical appointment', 'status' => 'Pending'
-            ],
-            [
-                'initials' => 'AG', 'name' => 'Ana Garcia', 'applied' => 'Apr 13, 2026', 
-                'type' => 'Emergency Leave', 'type_class' => 'bg-[#FEE2E2] text-[#DC2626]',
-                'dates' => 'Apr 18, 2026', 'to_dates' => '', 'days' => 1, 
-                'reason' => 'Family emergency', 'status' => 'Pending'
-            ],
-        ];
+        return view('leave.index', compact('leaveRequests'));
+    }
 
-        // 3. Leave Balances Data
-        $balances = [
-            ['name' => 'Juan Dela Cruz', 'vacation' => '10 days', 'sick' => '7 days', 'emergency' => '3 days'],
-            ['name' => 'Maria Santos', 'vacation' => '8 days', 'sick' => '10 days', 'emergency' => '3 days'],
-            ['name' => 'Jose Reyes', 'vacation' => '12 days', 'sick' => '8 days', 'emergency' => '3 days'],
-            ['name' => 'Ana Garcia', 'vacation' => '15 days', 'sick' => '12 days', 'emergency' => '3 days'],
-        ];
+    public function updateStatus(Request $request, $id)
+    {
+        // 1. Find the specific leave request in the database
+        $leave = LeaveRequest::findOrFail($id);
 
-        return view('leave.index', compact('calendar', 'requests', 'balances'));
+        // 2. Update its status (Approved or Rejected)
+        $leave->update([
+            'status' => $request->status, 
+            'approved_by' => 'HR Admin' // Later, this can be Auth::user()->first_name
+        ]);
+
+        // 3. Send the HR Officer back with a success message
+        return back()->with('success', 'Leave request marked as ' . $request->status . '!');
     }
 }

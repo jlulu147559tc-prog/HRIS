@@ -30,7 +30,10 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // HR Officer / Admin Dashboard Routes
 // ---------------------------------------------------------
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-Route::get('/employees', [EmployeeController::class, 'emp'])->name('employees.index');
+
+// UPDATED: Changed 'emp' to 'index'
+Route::get('/employees', [EmployeeController::class, 'index'])->name('employees.index');
+
 Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
 Route::get('/leave', [LeaveController::class, 'index'])->name('leave.index');
 Route::get('/payroll', [PayrollController::class, 'index'])->name('payroll.index');

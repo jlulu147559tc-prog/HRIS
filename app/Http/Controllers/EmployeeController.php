@@ -2,32 +2,55 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Employee; // Important: Make sure this is imported!
+use App\Models\Employee;
 use Illuminate\Http\Request;
 
 class EmployeeController extends Controller
 {
-    public function emp()
+    // 1. Fetch employees (with search filtering)
+    public function index(Request $request)
     {
-        // 1. Fetch ALL employees from the database, sorted by their first name
-        $employees = Employee::orderBy('first_name', 'asc')->get();
+        // Capture the search term from the search bar
+        $searchTerm = $request->input('search');
 
-        // 2. Send them to your HR view!
+        // Start building the database query
+        $query = Employee::query();
+
+        // If the user typed something, filter the database results
+        if ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
+                // 1. Check individual columns
+                $q->where('first_name', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('last_name', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('employee_id', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('department', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('position', 'LIKE', "%{$searchTerm}%")
+                  
+                  // 2. THE MAGIC LINE: Glue first and last name together and check the full string!
+                  ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$searchTerm}%"]);
+            });
+        }
+
+        // Fetch the filtered (or unfiltered) employees, sorted by first name
+        $employees = $query->orderBy('first_name', 'asc')->get();
+
+        // Send them to your HR view!
         return view('employees.index', compact('employees'));
     }
 
-    // 3. Show the Add Employee Form
+    // 2. Show the Add Employee Form
     public function create()
     {
         return view('employees.create');
     }
 
-    // 4. Store a newly created employee in the database
+    // 3. Store a newly created employee in the database
     public function store(Request $request)
     {
-        // 1. Validate the incoming data
+        // 1. Validate the incoming data (Updated to match your new Blade form)
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
             'employee_id' => 'required|string|unique:employees,employee_id',
             'department' => 'required|string',
             'position' => 'required|string',
@@ -36,16 +59,12 @@ class EmployeeController extends Controller
             'password' => 'required|min:6',
         ]);
 
-        // 2. Split the single 'name' input into 'first_name' and 'last_name'
-        $fullName = explode(' ', $validated['name']);
-        $firstName = $fullName[0];
-        $lastName = isset($fullName[1]) ? implode(' ', array_slice($fullName, 1)) : $firstName;
-
-        // 3. Create the new employee record
+        // 2. Create the new employee record
         Employee::create([
-            'first_name' => $firstName,
-            'last_name' => $lastName,
-            'initials' => substr($firstName, 0, 1) . (isset($lastName) ? substr($lastName, 0, 1) : ''),
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
+            // Automatically grab the first letter of first and last name for the avatar initials
+            'initials' => strtoupper(substr($validated['first_name'], 0, 1) . substr($validated['last_name'], 0, 1)),
             'employee_id' => $validated['employee_id'],
             'department' => $validated['department'],
             'position' => $validated['position'],
@@ -55,7 +74,7 @@ class EmployeeController extends Controller
             'hire_date' => now()->toDateString(),        // Set a default hire date to pass the constraint
         ]);
 
-        // 4. Redirect back with a success message
+        // 3. Redirect back with a success message
         return redirect()->route('employees.index')->with('success', 'Employee added successfully!');
     }
 }

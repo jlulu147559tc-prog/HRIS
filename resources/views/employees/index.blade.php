@@ -15,10 +15,15 @@
         </button>
     </div>
 
-    <div class="bg-[#F3F4F6] rounded-md p-4 flex items-center gap-3 mb-8">
-        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-        <input type="text" placeholder="Search" class="bg-transparent border-none outline-none text-slate-900 w-full font-bold placeholder-slate-900">
-    </div>
+    <form method="GET" action="{{ route('employees.index') }}" class="mb-8">
+        <div class="bg-[#F3F4F6] rounded-md p-4 flex items-center gap-3">
+            <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name, ID, or department..." class="bg-transparent border-none outline-none text-slate-900 w-full font-bold placeholder-slate-900">
+            
+            <button type="submit" class="hidden">Search</button>
+        </div>
+    </form>
 
     <div class="w-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <table class="w-full text-left border-collapse">
@@ -84,8 +89,13 @@
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Full Name</label>
-                        <input type="text" name="name" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:border-[#15A34A] focus:ring focus:ring-emerald-100 focus:outline-none" required>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">First Name</label>
+                        <input type="text" name="first_name" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:border-[#15A34A] focus:ring focus:ring-emerald-100 focus:outline-none" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Last Name</label>
+                        <input type="text" name="last_name" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:border-[#15A34A] focus:ring focus:ring-emerald-100 focus:outline-none" required>
                     </div>
 
                     <div>

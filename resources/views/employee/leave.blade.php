@@ -10,6 +10,13 @@
         </div>
     @endif
 
+    @if(session('error'))
+        <div class="mb-4 bg-[#FEF2F2] border border-[#EF4444] text-[#EF4444] px-4 py-3 rounded-lg flex items-center gap-2 font-bold text-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            {{ session('error') }}
+        </div>
+    @endif
+
     <div class="flex justify-between items-start mb-8 mt-4">
         <div>
             <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">My Leave</h1>
@@ -150,12 +157,12 @@
                 </button>
             </div>
             
-            <form action="{{ route('employee.leave.store') }}" method="POST" class="p-6 space-y-4">
+            <form action="{{ route('employee.leave.store') }}" method="POST" class="p-6 space-y-4" x-data="{ selectedType: 'Vacation Leave' }">
                 @csrf
                 
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-1">Leave Type</label>
-                    <select name="leave_type" required class="w-full rounded-lg border-slate-200 focus:border-[#10B981] focus:ring focus:ring-[#10B981]/20 text-sm font-medium text-slate-700">
+                    <select name="leave_type" x-model="selectedType" required class="w-full rounded-lg border-slate-200 focus:border-[#10B981] focus:ring focus:ring-[#10B981]/20 text-sm font-medium text-slate-700">
                         <option value="Vacation Leave">Vacation Leave</option>
                         <option value="Sick Leave">Sick Leave</option>
                         <option value="Emergency Leave">Emergency Leave</option>
@@ -165,11 +172,15 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-1">Start Date</label>
-                        <input type="date" name="start_date" required class="w-full rounded-lg border-slate-200 focus:border-[#10B981] focus:ring focus:ring-[#10B981]/20 text-sm font-medium text-slate-700">
+                        <input type="date" name="start_date" 
+                               :min="selectedType === 'Vacation Leave' ? '{{ \Carbon\Carbon::today()->addDays(3)->format('Y-m-d') }}' : '{{ \Carbon\Carbon::today()->format('Y-m-d') }}'" 
+                               required class="w-full rounded-lg border-slate-200 focus:border-[#10B981] focus:ring focus:ring-[#10B981]/20 text-sm font-medium text-slate-700">
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-1">End Date</label>
-                        <input type="date" name="end_date" required class="w-full rounded-lg border-slate-200 focus:border-[#10B981] focus:ring focus:ring-[#10B981]/20 text-sm font-medium text-slate-700">
+                        <input type="date" name="end_date" 
+                               :min="selectedType === 'Vacation Leave' ? '{{ \Carbon\Carbon::today()->addDays(3)->format('Y-m-d') }}' : '{{ \Carbon\Carbon::today()->format('Y-m-d') }}'" 
+                               required class="w-full rounded-lg border-slate-200 focus:border-[#10B981] focus:ring focus:ring-[#10B981]/20 text-sm font-medium text-slate-700">
                     </div>
                 </div>
 

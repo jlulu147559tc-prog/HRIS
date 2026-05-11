@@ -11,7 +11,8 @@
     </div>
 
     <form action="{{ route('login.post') }}" method="POST" class="space-y-5">
-        @csrf @error('email')
+        @csrf 
+        @error('email')
             <div class="bg-[#FEF2F2] border border-[#EF4444] text-[#EF4444] px-4 py-3 rounded-lg text-sm font-bold mb-2">
                 {{ $message }}
             </div>
@@ -53,5 +54,14 @@
     <div class="mt-6 text-center">
         <a href="#" class="text-sm font-bold text-[#10B981] hover:text-emerald-600 transition">Forgot Password?</a>
     </div>
+
+    <script>
+        (function () {
+            window.history.pushState(null, "", window.location.href);
+            window.onpopstate = function () {
+                window.history.pushState(null, "", window.location.href);
+            };
+        })();
+    </script>
 </div>
 @endsection

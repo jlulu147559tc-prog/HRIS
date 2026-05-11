@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Employee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class EmployeePortalController extends Controller
 {
@@ -13,16 +14,22 @@ class EmployeePortalController extends Controller
     {
         $employee = Auth::user();
 
+        // Count their real pending leave requests from the database
+        $pendingCount = $employee->leaveRequests()->where('status', 'Pending')->count();
+
         $data = [
             'employee' => [
                 'name' => $employee->first_name, 
                 'id' => $employee->employee_id, 
                 'dept' => $employee->department, 
                 'position' => $employee->position, 
-                'hire' => \Carbon\Carbon::parse($employee->hire_date)->format('M d, Y')
+                'hire' => Carbon::parse($employee->hire_date)->format('M d, Y')
             ],
             'stats' => [
-                'worked' => 18, 'vacation' => 8, 'sick' => 10, 'pending' => 1
+                'worked' => $employee->attendances()->count(), 
+                'vacation' => $employee->vacation_balance, 
+                'sick' => $employee->sick_balance, 
+                'pending' => $pendingCount
             ],
             'events' => [
                 ['title' => 'Performance Review', 'desc' => 'Q1 2026 Performance Evaluation', 'date' => 'Apr 20, 2026', 'icon' => 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', 'color' => 'text-emerald-500', 'bg' => 'bg-emerald-50'],
@@ -48,8 +55,8 @@ class EmployeePortalController extends Controller
         if ($employee && $employee->attendances) {
             $history = $employee->attendances->sortByDesc('record_date')->map(function ($attendance) {
                 return [
-                    'date' => \Carbon\Carbon::parse($attendance->record_date)->format('M d, Y'),
-                    'day' => \Carbon\Carbon::parse($attendance->record_date)->format('l'),
+                    'date' => Carbon::parse($attendance->record_date)->format('M d, Y'),
+                    'day' => Carbon::parse($attendance->record_date)->format('l'),
                     'time_in' => $attendance->time_in,
                     'time_out' => $attendance->time_out ?? '---',
                     'hours_worked' => $attendance->hours_worked ? $attendance->hours_worked . ' hrs' : '---',
@@ -81,20 +88,36 @@ class EmployeePortalController extends Controller
     {
         $employee = Auth::user();
 
+        $totalVL = 15;
+        $totalSL = 15;
+        $totalEL = 3;
+
+        $usedVL = max(0, $totalVL - $employee->vacation_balance);
+        $usedSL = max(0, $totalSL - $employee->sick_balance);
+        $usedEL = max(0, $totalEL - $employee->emergency_balance);
+
+        $nextLeave = $employee->leaveRequests()
+            ->where('status', 'Approved')
+            ->where('start_date', '>=', now()->toDateString())
+            ->orderBy('start_date', 'asc')
+            ->first();
+
+        $upcoming = [
+            'type' => $nextLeave ? $nextLeave->leave_type : 'No upcoming leaves',
+            'dates' => $nextLeave ? Carbon::parse($nextLeave->start_date)->format('M d') . ' to ' . Carbon::parse($nextLeave->end_date)->format('M d, Y') : '---',
+            'days' => $nextLeave ? $nextLeave->days_requested : 0,
+            'reason' => $nextLeave ? $nextLeave->reason : '---',
+            'status' => $nextLeave ? $nextLeave->status : 'N/A'
+        ];
+
         $data = [
             'balances' => [
-                ['type' => 'Vacation Leave', 'available' => 8, 'used' => 7, 'total' => 15, 'utilized_percent' => 47, 'color' => 'bg-[#10B981]', 'text_color' => 'text-[#10B981]'],
-                ['type' => 'Sick Leave', 'available' => 10, 'used' => 5, 'total' => 15, 'utilized_percent' => 33, 'color' => 'bg-[#10B981]', 'text_color' => 'text-[#10B981]'],
-                ['type' => 'Emergency Leave', 'available' => 3, 'used' => 0, 'total' => 3, 'utilized_percent' => 0, 'color' => 'bg-[#10B981]', 'text_color' => 'text-[#10B981]'],
+                ['type' => 'Vacation Leave', 'available' => $employee->vacation_balance, 'used' => $usedVL, 'total' => $totalVL, 'utilized_percent' => round(($usedVL / $totalVL) * 100), 'color' => 'bg-[#10B981]', 'text_color' => 'text-[#10B981]'],
+                ['type' => 'Sick Leave', 'available' => $employee->sick_balance, 'used' => $usedSL, 'total' => $totalSL, 'utilized_percent' => round(($usedSL / $totalSL) * 100), 'color' => 'bg-[#F97316]', 'text_color' => 'text-[#F97316]'],
+                ['type' => 'Emergency Leave', 'available' => $employee->emergency_balance, 'used' => $usedEL, 'total' => $totalEL, 'utilized_percent' => round(($usedEL / $totalEL) * 100), 'color' => 'bg-[#64748B]', 'text_color' => 'text-[#64748B]'],
             ],
-            'upcoming' => [
-                'type' => 'Vacation Leave',
-                'dates' => 'Apr 20-22, 2026',
-                'days' => 3,
-                'reason' => 'Family vacation',
-                'status' => 'Approved'
-            ],
-            'history' => $employee ? $employee->leaveRequests()->orderBy('created_at', 'desc')->get() : collect([])
+            'upcoming' => $upcoming,
+            'history' => $employee->leaveRequests()->orderBy('created_at', 'desc')->get()
         ];
 
         return view('employee.leave', compact('data'));
@@ -122,20 +145,76 @@ class EmployeePortalController extends Controller
     {
         $employee = Employee::with(['performanceReviews' => function ($query) {
             $query->orderBy('review_date', 'desc');
-        }])->find(Auth::id());
+        }])->find(auth()->id());
 
-        $latestReview = $employee && $employee->performanceReviews ? $employee->performanceReviews->first() : null;
+        $latestReview = $employee->performanceReviews->first();
+
+        $competencies = [];
+        if ($latestReview) {
+            $competencies = [
+                ['name' => 'Work Quality', 'score' => $latestReview->work_quality, 'weight' => '25%'],
+                ['name' => 'Timeliness', 'score' => $latestReview->timeliness, 'weight' => '20%'],
+                ['name' => 'Teamwork', 'score' => $latestReview->teamwork, 'weight' => '20%'],
+                ['name' => 'Communication', 'score' => $latestReview->communication, 'weight' => '20%'],
+                ['name' => 'Initiative', 'score' => $latestReview->initiative, 'weight' => '15%'],
+            ];
+        }
 
         $data = [
             'latest' => $latestReview,
-            'competencies' => $latestReview ? $latestReview->competencies : [],
-            'goals' => $latestReview ? $latestReview->goals : [],
-            'history' => $employee ? $employee->performanceReviews : [] 
+            'competencies' => $competencies,
+            'history' => $employee->performanceReviews,
+            'goals' => [] 
         ];
 
         return view('employee.performance', compact('data'));
     }
 
+    // 6. My Profile Settings (SYNCED WITH HR RECAP DATA)
+    public function profile()
+    {
+        // Fresh data from DB to ensure sync with HR portal
+        $employee = Auth::user()->fresh();
+
+        // 1. Calculate Tenure - Force whole number
+        $hireDate = Carbon::parse($employee->hire_date);
+        $tenureDays = (int) floor($hireDate->diffInDays(now()));
+
+        // 2. Calculate Age - Updated to use 'date_of_birth' from migration
+        $age = "N/A";
+        if ($employee->date_of_birth) {
+            $age = Carbon::parse($employee->date_of_birth)->age . ' years old';
+        }
+
+        $data = [
+            'user' => $employee,
+            'meta' => [
+                'joined' => $hireDate->format('F Y'),
+                'tenure' => $tenureDays . ' days',
+                'age' => $age,
+                'status' => 'Active'
+            ]
+        ];
+
+        return view('employee.profile', compact('data'));
+    }
+
+    // 7. Update Profile Logic
+    public function updateProfile(Request $request)
+    {
+        $employee = Auth::user();
+
+        $request->validate([
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:255',
+        ]);
+
+        $employee->update($request->only(['phone', 'address']));
+
+        return back()->with('success', 'Profile updated successfully.');
+    }
+
+    // 8. Leave Store Logic
     public function storeLeave(Request $request)
     {
         $request->validate([
@@ -145,74 +224,54 @@ class EmployeePortalController extends Controller
             'reason' => 'required|string|max:255',
         ]);
 
-        $employee = Auth::user();
-
-        $start = \Carbon\Carbon::parse($request->start_date);
-        $end = \Carbon\Carbon::parse($request->end_date);
-        $days = $start->diffInDays($end) + 1;
+        $employee = Auth::user(); 
+        $start = Carbon::parse($request->start_date);
+        $end = Carbon::parse($request->end_date);
+        $daysRequested = $start->diffInDays($end) + 1;
 
         $employee->leaveRequests()->create([
             'leave_type' => $request->leave_type,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
-            'days_requested' => $days,
+            'days_requested' => $daysRequested,
             'reason' => $request->reason,
-            'status' => 'Pending',
+            'status' => 'Pending', 
             'applied_date' => now(),
         ]);
 
-        return back()->with('success', 'Leave request submitted successfully!');
+        return back()->with('success', 'Your leave request has been submitted.');
     }
 
+    // 9. Punch Clock Logic
     public function punchClock(Request $request)
-{
-    $employee = Auth::user();
-    
-    // Use the standard database format for searching
-    $todayDate = now()->toDateString(); // Formats as YYYY-MM-DD
-    $currentTime = now()->format('g:i A');
+    {
+        $employee = Auth::user();
+        $todayDate = now()->toDateString(); 
+        $currentTime = now()->format('g:i A');
 
-    // Find the record for today that belongs to this employee
-    $attendance = $employee->attendances()->where('record_date', $todayDate)->first();
+        $attendance = $employee->attendances()->where('record_date', $todayDate)->first();
 
-    // CASE 1: No record exists yet -> TIME IN
-    if (!$attendance) {
-        $isLate = now()->format('H:i') > '08:00';
-        
-        $employee->attendances()->create([
-            'record_date' => $todayDate,
-            'day_of_week' => now()->format('l'),
-            'time_in' => $currentTime,
-            'time_out' => null,
-            'hours_worked' => null,
-            'rendered_hours' => null,
-            'status' => $isLate ? 'Late' : 'Present',
-            'remarks' => $isLate ? 'Late entry' : 'On time',
-        ]);
-        
-        return back()->with('success', "You have successfully Timed In at $currentTime");
-    } 
-    
-    // CASE 2: Record exists but Time Out is empty -> TIME OUT
-    elseif ($attendance && is_null($attendance->time_out)) {
-        $timeIn = \Carbon\Carbon::parse($attendance->time_in);
-        $timeOut = now();
-        
-        // Calculate decimal hours (e.g., 8.5)
-        $hours = round($timeOut->diffInMinutes($timeIn) / 60, 2);
-
-        $attendance->update([
-            'time_out' => $currentTime,
-            'hours_worked' => $hours,
-            'rendered_hours' => $hours,
-        ]);
-        
-        return back()->with('success', "You have successfully Timed Out at $currentTime. Total hours: $hours");
-    } 
-    
-    // CASE 3: Already Timed Out for today
-    else {
-        return back()->with('error', 'You have already completed your shift for today.');
+        if (!$attendance) {
+            $isLate = now()->format('H:i') > '08:00';
+            $employee->attendances()->create([
+                'record_date' => $todayDate,
+                'day_of_week' => now()->format('l'),
+                'time_in' => $currentTime,
+                'status' => $isLate ? 'Late' : 'Present',
+            ]);
+            return back()->with('success', "Timed In at $currentTime");
+        } 
+        elseif ($attendance && is_null($attendance->time_out)) {
+            $timeIn = Carbon::parse($attendance->time_in);
+            $hours = round(now()->diffInMinutes($timeIn) / 60, 2);
+            $attendance->update([
+                'time_out' => $currentTime,
+                'hours_worked' => $hours,
+            ]);
+            return back()->with('success', "Timed Out. Total hours: $hours");
+        } 
+        else {
+            return back()->with('error', 'Shift completed for today.');
+        }
     }
-}
 }

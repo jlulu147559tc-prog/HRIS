@@ -11,7 +11,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Register the PreventBackHistory middleware for the web group
+        $middleware->append(\App\Http\Middleware\PreventBackHistory::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

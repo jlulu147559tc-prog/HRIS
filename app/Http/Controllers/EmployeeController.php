@@ -47,7 +47,7 @@ class EmployeeController extends Controller
     // 3. Store a newly created employee in the database
     public function store(Request $request)
     {
-        // 1. Validate the incoming data (Updated to match your new Blade form)
+        // 1. Validate the incoming data (Updated to include new personal details)
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -57,6 +57,12 @@ class EmployeeController extends Controller
             'status' => 'required|string',
             'email' => 'required|email|unique:employees,email',
             'password' => 'required|min:6',
+            // New validation rules for personal information
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string',
+            'date_of_birth' => 'nullable|date',
+            'school' => 'nullable|string|max:255',
+            'course' => 'nullable|string|max:255',
         ]);
 
         // 2. Create the new employee record
@@ -72,9 +78,57 @@ class EmployeeController extends Controller
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']), // Hash the password
             'hire_date' => now()->toDateString(),        // Set a default hire date to pass the constraint
+            // Save the new personal data
+            'phone' => $validated['phone'] ?? null,
+            'address' => $validated['address'] ?? null,
+            'date_of_birth' => $validated['date_of_birth'] ?? null,
+            'school' => $validated['school'] ?? null,
+            'course' => $validated['course'] ?? null,
         ]);
 
         // 3. Redirect back with a success message
         return redirect()->route('employees.index')->with('success', 'Employee added successfully!');
+    }
+
+    // 4. Update an existing employee in the database
+    public function update(Request $request, $id)
+    {
+        // Find the employee by their ID
+        $employee = Employee::findOrFail($id);
+
+        // Validate the incoming data
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'department' => 'required|string',
+            'position' => 'required|string',
+            'status' => 'required|string',
+            // Ignore this employee's current email when checking for unique emails
+            'email' => 'required|email|unique:employees,email,' . $employee->id,
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string',
+            'date_of_birth' => 'nullable|date',
+            'school' => 'nullable|string|max:255',
+            'course' => 'nullable|string|max:255',
+        ]);
+
+        // Update the employee record
+        $employee->update([
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
+            'initials' => strtoupper(substr($validated['first_name'], 0, 1) . substr($validated['last_name'], 0, 1)),
+            'department' => $validated['department'],
+            'position' => $validated['position'],
+            'status' => $validated['status'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
+            'address' => $validated['address'] ?? null,
+            'date_of_birth' => $validated['date_of_birth'] ?? null,
+            'school' => $validated['school'] ?? null,
+            'course' => $validated['course'] ?? null,
+        ]);
+
+        // Redirect back with a success message
+        return redirect()->route('employees.index')->with('success', 'Employee updated successfully!');
     }
 }

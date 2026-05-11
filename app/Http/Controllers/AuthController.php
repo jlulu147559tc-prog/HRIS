@@ -49,16 +49,22 @@ class AuthController extends Controller
         ])->onlyInput('email');
     }
 
-    // 3. Process the Logout
+    // 3. Process the Logout (SECURED WITH BACK-BUTTON PROTECTION)
     public function logout(Request $request)
     {
         // Forget our custom session role keys upon logout
         $request->session()->forget(['is_hr_officer', 'hr_2fa_verified', 'employee_2fa_verified']);
         
+        // Log out the user from Laravel's Auth system
         Auth::logout();
+
+        // Destroy the entire session data in the server
         $request->session()->invalidate();
+
+        // Regenerate the CSRF token to prevent "session fixation" attacks
         $request->session()->regenerateToken();
-        
+
+        // Redirect back to login
         return redirect('/login');
     }
 

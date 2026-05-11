@@ -10,15 +10,9 @@ class PerformanceReview extends Model
     use HasFactory;
 
     protected $fillable = [
-        'employee_id', 'period', 'reviewer_name', 'score', 
-        'rating', 'review_date', 'competencies', 'goals'
-    ];
-
-    // Tell Laravel these columns contain JSON data
-    protected $casts = [
-        'competencies' => 'array',
-        'goals' => 'array',
-        'review_date' => 'date',
+        'employee_id', 'review_month', 'review_date', 'work_quality', 
+        'timeliness', 'teamwork', 'communication', 'initiative', 
+        'composite_score', 'comments', 'status'
     ];
 
     public function employee()

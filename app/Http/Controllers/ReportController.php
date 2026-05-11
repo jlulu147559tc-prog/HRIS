@@ -2,36 +2,51 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Employee;
+use App\Models\LeaveRequest;
+use App\Models\Attendance;
+use App\Models\PerformanceReview;
+use Illuminate\Http\Request;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+
 class ReportController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Filter Default Data
-        $filters = [
-            'start_date' => '10/01/2025',
-            'end_date' => '03/31/2026'
-        ];
+        // Default date range (Last 6 months)
+        $startDate = $request->input('start_date', Carbon::now()->subMonths(5)->startOfMonth()->toDateString());
+        $endDate = $request->input('end_date', Carbon::now()->toDateString());
 
-        // Line Chart Data (Headcount Trend)
-        $trend = [
-            ['month' => 'Oct 25', 'value' => 160, 'y_pos' => '11%'],
-            ['month' => 'Nov 25', 'value' => 162, 'y_pos' => '10%'],
-            ['month' => 'Dec 25', 'value' => 162, 'y_pos' => '10%'],
-            ['month' => 'Jan 26', 'value' => 165, 'y_pos' => '8%'],
-            ['month' => 'Feb 26', 'value' => 168, 'y_pos' => '6%'],
-            ['month' => 'Mar 26', 'value' => 170, 'y_pos' => '5%'],
-        ];
+        // 1. Headcount Data (By Department)
+        $deptDistribution = Employee::where('status', 'Active')
+            ->select('department', DB::raw('count(*) as total'))
+            ->groupBy('department')
+            ->get();
 
-        // Pie Chart Data (Department Distribution)
-        $distribution = [
-            ['dept' => 'Engineering', 'percent' => 26, 'color' => '#1E293B'], // Slate 800
-            ['dept' => 'Operations', 'percent' => 13, 'color' => '#A855F7'],  // Purple 500
-            ['dept' => 'Finance', 'percent' => 13, 'color' => '#EF4444'],     // Red 500
-            ['dept' => 'HR', 'percent' => 9, 'color' => '#3B82F6'],           // Blue 500
-            ['dept' => 'Marketing', 'percent' => 16, 'color' => '#F59E0B'],   // Amber 500
-            ['dept' => 'Sales', 'percent' => 22, 'color' => '#22C55E'],       // Green 500
-        ];
+        // 2. Attendance Data (Present vs Absent for the range)
+        $attendanceStats = Attendance::whereBetween('record_date', [$startDate, $endDate])
+            ->select('status', DB::raw('count(*) as total'))
+            ->groupBy('status')
+            ->get();
 
-        return view('reports.index', compact('filters', 'trend', 'distribution'));
+        // 3. Leave Data (Requests by type)
+        $leaveStats = LeaveRequest::whereBetween('start_date', [$startDate, $endDate])
+            ->select('leave_type', DB::raw('count(*) as total'))
+            ->groupBy('leave_type')
+            ->get();
+
+        return view('reports.index', compact('deptDistribution', 'attendanceStats', 'leaveStats', 'startDate', 'endDate'));
+    }
+
+    public function exportCsv()
+    {
+        // Logic for CSV export
+        return response()->streamDownload(function () {
+            echo "Employee Name, Department, Status\n";
+            foreach (Employee::all() as $emp) {
+                echo "{$emp->first_name} {$emp->last_name}, {$emp->department}, {$emp->status}\n";
+            }
+        }, 'HR_Report_' . now()->format('Y-m-d') . '.csv');
     }
 }

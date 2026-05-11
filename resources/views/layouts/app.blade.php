@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
     <title>HR Central - HRIS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -36,7 +40,6 @@
             </div>
 
             <nav class="px-4 space-y-1">
-                
                 <a href="/" class="flex items-center gap-4 px-4 py-3 rounded-lg transition {{ request()->is('/') ? 'bg-[#1B844A] text-white font-semibold' : 'text-slate-300 hover:text-white hover:bg-slate-800 font-medium' }}">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                     Dashboard
@@ -71,7 +74,6 @@
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
                     Reports
                 </a>
-                
             </nav>
         </div>
 
@@ -91,18 +93,17 @@
                 </div>
                 
                 <div class="py-1">
-                    <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition">
-                        Profile Settings
-                    </a>
-                    <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition">
-                        Security & MFA
-                    </a>
+                    <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition">Profile Settings</a>
+                    <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition">Security & MFA</a>
                 </div>
                 
                 <div class="border-t border-slate-100 py-1">
-                    <a href="/login" class="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition">
-                        Log Out
-                    </a>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition text-left">
+                            Log Out
+                        </button>
+                    </form>
                 </div>
             </div>
 
@@ -119,7 +120,6 @@
     </aside>
 
     <div class="flex-1 flex flex-col h-screen overflow-hidden relative">
-        
         <header class="bg-white shadow-sm z-10 px-8 py-4 flex items-center justify-between border-b border-slate-200">
             <div class="flex items-center gap-3">
                 <h1 class="hidden lg:block text-2xl font-black text-[#0B1C3D]">Welcome back, Juan!</h1>
@@ -127,11 +127,6 @@
             </div>
             
             <div class="flex items-center gap-4">
-                <a href="{{ route('employees.create') }}" class="bg-[#10B981] hover:bg-emerald-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 shadow-sm transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    Add Employee
-                </a>
-
                 <button @click="sidebarOpen = true" class="lg:hidden text-slate-500 hover:text-[#0B1C3D] focus:outline-none p-1 border border-slate-200 rounded-md">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
@@ -141,8 +136,6 @@
         <main class="flex-1 overflow-y-auto p-4 lg:p-8 bg-slate-50">
             @yield('content')
         </main>
-
     </div>
-
 </body>
 </html>

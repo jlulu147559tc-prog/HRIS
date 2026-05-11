@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
     <title>Employee Portal - HR Central</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -18,7 +23,7 @@
          style="display: none;"></div>
 
     <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" 
-           class="fixed inset-y-0 left-0 z-30 w-64 bg-[#0B1C3D] text-white flex flex-col justify-between h-full shadow-2xl transition-transform duration-300 ease-in-out lg:static lg:translate-x-0">
+            class="fixed inset-y-0 left-0 z-30 w-64 bg-[#0B1C3D] text-white flex flex-col justify-between h-full shadow-2xl transition-transform duration-300 ease-in-out lg:static lg:translate-x-0">
         <div>
             <div class="flex items-center justify-between p-6 mb-4 border-b border-slate-700/50">
                 <div class="flex items-center gap-3">
@@ -64,14 +69,14 @@
                 <div class="border-t border-slate-100 py-1">
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf
-                        <button type="submit" class="flex items-center gap-3 w-full px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 transition">
+                        <button type="submit" class="flex items-center gap-3 w-full px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 transition text-left cursor-pointer">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                             Log Out
                         </button>
                     </form>
                 </div>
             </div>
-            <button @click="open = !open" class="w-full border-t border-slate-700 p-6 flex items-center gap-4 hover:bg-slate-800 transition text-left focus:outline-none">
+            <button @click="open = !open" class="w-full border-t border-slate-700 p-6 flex items-center gap-4 hover:bg-slate-800 transition text-left focus:outline-none cursor-pointer">
                 <div class="w-10 h-10 bg-[#10B981] rounded-full flex items-center justify-center text-white font-bold text-sm">
                     {{ auth()->user()->initials ?? 'ME' }}
                 </div>
@@ -88,17 +93,13 @@
     </aside>
 
     <div class="flex-1 flex flex-col h-screen overflow-hidden bg-[#F8FAFC]">
-        
         <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 lg:px-8 shrink-0">
-            
             <div class="flex items-center gap-3">
                 <button @click="sidebarOpen = true" class="lg:hidden text-slate-500 hover:text-slate-800 focus:outline-none p-1 rounded-md hover:bg-slate-100 transition">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
-                
                 <h1 class="lg:hidden text-lg font-bold tracking-tight text-[#0B1C3D]">Employee Portal</h1>
-
-                <button class="hidden lg:block text-slate-400 hover:text-slate-600">
+                <button class="hidden lg:block text-slate-400 hover:text-slate-600 cursor-pointer">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                 </button>
             </div>
@@ -117,8 +118,6 @@
         <main class="flex-1 overflow-y-auto p-4 lg:p-8">
             @yield('content')
         </main>
-        
     </div>
-
 </body>
 </html>

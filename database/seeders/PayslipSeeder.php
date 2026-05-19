@@ -10,14 +10,31 @@ class PayslipSeeder extends Seeder
 {
     public function run(): void
     {
-        $maria = Employee::where('employee_id', 'EMP002')->first();
+        // Changed this back to employee_id and EMP002 to match your database perfectly
+        $maria = Employee::where('employee_id', 'EMP002')->first(); 
 
         if ($maria) {
             $maria->payslips()->createMany([
-                ['period' => 'April 1-15, 2026', 'pay_date' => '2026-04-18', 'amount' => '₱18,714.58', 'status' => 'Paid'],
-                ['period' => 'March 16-31, 2026', 'pay_date' => '2026-04-03', 'amount' => '₱18,714.58', 'status' => 'Paid'],
-                ['period' => 'March 1-15, 2026', 'pay_date' => '2026-03-18', 'amount' => '₱18,714.58', 'status' => 'Paid'],
-                ['period' => 'February 16-29, 2026', 'pay_date' => '2026-03-03', 'amount' => '₱18,714.58', 'status' => 'Paid'],
+                [
+                    'period' => 'April 1-15, 2026', 
+                    'gross_pay' => 20000.00,
+                    'sss_deduction' => 500.00,
+                    'philhealth_deduction' => 300.00,
+                    'pagibig_deduction' => 100.00,
+                    'tax_deduction' => 385.42,
+                    'net_pay' => 18714.58, 
+                    'status' => 'Finalized'
+                ],
+                [
+                    'period' => 'March 16-31, 2026', 
+                    'gross_pay' => 20000.00,
+                    'sss_deduction' => 500.00,
+                    'philhealth_deduction' => 300.00,
+                    'pagibig_deduction' => 100.00,
+                    'tax_deduction' => 385.42,
+                    'net_pay' => 18714.58, 
+                    'status' => 'Finalized'
+                ]
             ]);
         }
     }

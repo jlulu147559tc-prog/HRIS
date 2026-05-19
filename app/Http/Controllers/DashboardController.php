@@ -6,6 +6,8 @@ use App\Models\Employee;
 use App\Models\LeaveRequest;
 use App\Models\Attendance;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth; 
+use Carbon\Carbon; // <-- Added Carbon for date math
 
 class DashboardController extends Controller
 {
@@ -50,5 +52,42 @@ class DashboardController extends Controller
             'lateToday', 
             'absentToday'
         ));
+    }
+
+    // ---------------------------------------------------------
+    // HR Profile & Security Methods
+    // ---------------------------------------------------------
+
+    // Profile Settings Page
+    public function profile()
+    {
+        $user = Auth::user()->fresh(); // Fetch the logged-in HR officer
+
+        // Calculate Tenure
+        $hireDate = Carbon::parse($user->hire_date);
+        $tenureDays = (int) floor($hireDate->diffInDays(now()));
+
+        // Calculate Age (Using the date_of_birth column)
+        $age = "N/A";
+        if ($user->date_of_birth) {
+            $age = Carbon::parse($user->date_of_birth)->age . ' years old';
+        }
+
+        // Pack the extra data
+        $meta = [
+            'joined' => $hireDate->format('F Y'),
+            'tenure' => $tenureDays . ' days',
+            'age' => $age,
+            'status' => 'Active'
+        ];
+
+        return view('hr.profile', compact('user', 'meta'));
+    }
+
+    // Security & MFA Page
+    public function security()
+    {
+        $user = Auth::user(); // Fetch the logged-in HR officer
+        return view('hr.security', compact('user'));
     }
 }

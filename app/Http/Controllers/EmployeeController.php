@@ -131,4 +131,17 @@ class EmployeeController extends Controller
         // Redirect back with a success message
         return redirect()->route('employees.index')->with('success', 'Employee updated successfully!');
     }
+
+    // 5. Remove an employee from the database
+    public function destroy($id)
+    {
+        // 1. Find the exact employee by their ID
+        $employee = Employee::findOrFail($id);
+
+        // 2. Delete the employee record (MySQL will cascade and delete their attendances/payslips automatically)
+        $employee->delete();
+
+        // 3. Redirect the HR Admin back to the table with a success message
+        return redirect()->route('employees.index')->with('success', 'Employee and all related records removed successfully.');
+    }
 }

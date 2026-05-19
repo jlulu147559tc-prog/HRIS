@@ -66,6 +66,9 @@
 
         <div class="relative" x-data="{ open: false }" @click.away="open = false">
             <div x-show="open" style="display: none;" class="absolute bottom-full left-4 mb-2 w-56 bg-white rounded-lg shadow-lg border border-slate-200 overflow-hidden text-slate-800 z-50">
+                <div class="py-1">
+                    <a href="{{ route('employee.profile') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition">Profile Settings</a>
+                </div>
                 <div class="border-t border-slate-100 py-1">
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf
@@ -105,9 +108,57 @@
             </div>
 
             <div class="flex items-center gap-4">
-                <div class="relative text-slate-400 hover:text-slate-600 cursor-pointer">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                    <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center">3</span>
+                
+                <div class="relative" x-data="{ notifOpen: false }" @click.away="notifOpen = false">
+                    <button @click="notifOpen = !notifOpen" class="relative p-1 text-slate-400 hover:text-slate-600 focus:outline-none transition rounded-full hover:bg-slate-100 cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                        
+                        <span class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white">
+                            3
+                        </span>
+                    </button>
+
+                    <div x-show="notifOpen"
+                         x-transition:enter="transition ease-out duration-100"
+                         x-transition:enter-start="transform opacity-0 scale-95"
+                         x-transition:enter-end="transform opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-75"
+                         x-transition:leave-start="transform opacity-100 scale-100"
+                         x-transition:leave-end="transform opacity-0 scale-95"
+                         class="absolute right-0 mt-3 w-80 bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden z-50"
+                         style="display: none;">
+                        
+                        <div class="px-4 py-3 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                            <span class="text-sm font-bold text-slate-900">Notifications</span>
+                            <button class="text-[10px] font-bold text-[#10B981] hover:text-emerald-700 uppercase tracking-wider focus:outline-none cursor-pointer">Mark all read</button>
+                        </div>
+                        
+                        <div class="max-h-[28rem] overflow-y-auto">
+                            <a href="#" class="block px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition relative">
+                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-[#10B981]"></div>
+                                <p class="text-sm font-bold text-slate-800">Leave request approved</p>
+                                <p class="text-xs text-slate-500 mt-0.5">Your vacation leave for Apr 20-22 has been approved by HR.</p>
+                                <p class="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wider">2 hours ago</p>
+                            </a>
+                            
+                            <a href="#" class="block px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition relative">
+                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-[#10B981]"></div>
+                                <p class="text-sm font-bold text-slate-800">Payslip available</p>
+                                <p class="text-xs text-slate-500 mt-0.5">Your payslip for April 1-15, 2026 is now ready to view.</p>
+                                <p class="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wider">1 day ago</p>
+                            </a>
+
+                            <a href="#" class="block px-4 py-3 hover:bg-slate-50 transition opacity-75">
+                                <p class="text-sm font-bold text-slate-700">Performance Review</p>
+                                <p class="text-xs text-slate-500 mt-0.5">Q1 2026 Performance Evaluation is set for Apr 20.</p>
+                                <p class="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wider">2 days ago</p>
+                            </a>
+                        </div>
+                        
+                        <div class="border-t border-slate-100 text-center bg-slate-50 hover:bg-slate-100 transition">
+                            <a href="#" class="block px-4 py-3 text-xs font-bold text-slate-600 hover:text-slate-900 w-full">View all notifications</a>
+                        </div>
+                    </div>
                 </div>
                 <div class="w-8 h-8 rounded-full bg-[#0B1C3D] text-white flex items-center justify-center text-xs font-bold">
                     {{ auth()->user()->initials ?? 'ME' }}

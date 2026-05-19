@@ -93,8 +93,8 @@
                 </div>
                 
                 <div class="py-1">
-                    <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition">Profile Settings</a>
-                    <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition">Security & MFA</a>
+                    <a href="{{ route('hr.profile') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition">Profile Settings</a>
+                    <a href="{{ route('hr.security') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition">Security & MFA</a>
                 </div>
                 
                 <div class="border-t border-slate-100 py-1">

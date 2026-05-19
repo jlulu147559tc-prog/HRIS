@@ -29,6 +29,10 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // ---------------------------------------------------------
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
+// HR Profile & Security Routes (NEW)
+Route::get('/hr/profile', [DashboardController::class, 'profile'])->name('hr.profile');
+Route::get('/hr/security', [DashboardController::class, 'security'])->name('hr.security');
+
 Route::get('/employees', [EmployeeController::class, 'index'])->name('employees.index');
 Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
 
@@ -81,5 +85,5 @@ Route::middleware('auth')->group(function () {
 
     // Profile Settings
     Route::get('/employee/profile', [EmployeePortalController::class, 'profile'])->name('employee.profile');
-    Route::put('/employee/profile/update', [EmployeePortalController::class, 'updateProfile'])->name('employee.profile.update'); // <-- NEW: Added the update route
+    Route::put('/employee/profile/update', [EmployeePortalController::class, 'updateProfile'])->name('employee.profile.update'); 
 });
